@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.todoapp.ui.theme.TODOAPPTheme
 
@@ -47,13 +48,11 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(color = Color.Black)
                         .padding(WindowInsets.safeContent.asPaddingValues())
-
                 )
                 {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-
                     )
                     {
                         TextField(
@@ -65,7 +64,6 @@ class MainActivity : ComponentActivity() {
                                 .weight(1f)
                                 .padding(horizontal = 8.dp)
                                 .height(60.dp)
-
                         )
                         Button(
                             colors = ButtonColors(Color.White,Color.Black,Color.White,Color.White),
@@ -73,7 +71,6 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .padding(horizontal = 8.dp)
                                 .height(60.dp)
-
                         )
                         {
                             Text(text = "ADD TASK");
@@ -87,21 +84,25 @@ class MainActivity : ComponentActivity() {
                         itemsIndexed(tasks) { index, item ->
                             Row(
                                 modifier = Modifier
-                                    .background(color = Color.Gray)
                                     .fillMaxWidth()
-                                    .padding(16.dp)
+                                    .padding(8.dp)
                             )
                             {
-                                Text(text = item, color = Color.White)
+                                Text(text = item,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Justify,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(top = 12.dp)
+                                    )
                                 Checkbox(
                                     checked = checkboxStates[index],
                                     onCheckedChange = { isChecked ->
                                         checkboxStates[index] = isChecked
-                                    }
+                                    },
                                 )
                             }
                             HorizontalDivider(color = Color.White)
-
                         }
                     }
                 }
