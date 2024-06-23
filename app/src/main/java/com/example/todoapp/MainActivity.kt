@@ -16,10 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -29,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.todoapp.ui.theme.TODOAPPTheme
@@ -41,7 +46,7 @@ class MainActivity : ComponentActivity() {
             TODOAPPTheme()
             {
                 var task by remember { mutableStateOf("") }
-                var tasks by remember { mutableStateOf(listOf<String>()) }
+                var tasks = remember { mutableStateListOf<String>() }
                 val checkboxStates = remember { mutableStateListOf<Boolean>() }
                 Column(
                     modifier = Modifier
@@ -67,7 +72,7 @@ class MainActivity : ComponentActivity() {
                         )
                         Button(
                             colors = ButtonColors(Color.White,Color.Black,Color.White,Color.White),
-                            onClick = {if (task.isNotBlank()) { tasks = tasks + task; task = ""; checkboxStates.add(false)} },
+                            onClick = {if (task.isNotBlank()) { tasks.add(task); task = ""; checkboxStates.add(false)} },
                             modifier = Modifier
                                 .padding(horizontal = 8.dp)
                                 .height(60.dp)
@@ -101,6 +106,12 @@ class MainActivity : ComponentActivity() {
                                         checkboxStates[index] = isChecked
                                     },
                                 )
+                                IconButton(
+                                    onClick = { tasks.removeAt(index); checkboxStates.removeAt(index) }
+                                )
+                                {
+                                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                                }
                             }
                             HorizontalDivider(color = Color.White)
                         }
