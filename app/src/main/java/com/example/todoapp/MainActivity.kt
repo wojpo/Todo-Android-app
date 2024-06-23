@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,83 +43,128 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TODOAPPTheme()
-            {
-                var task by remember { mutableStateOf("") }
-                val tasks = remember { mutableStateListOf<String>() }
-                val checkboxStates = remember { mutableStateListOf<Boolean>() }
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = Color.Black)
-                        .padding(WindowInsets.safeContent.asPaddingValues())
-                )
-                {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    {
-                        TextField(
-                            value = task,
-                            onValueChange = { text ->
-                                task = text
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = 8.dp)
-                                .height(60.dp)
-                        )
-                        Button(
-                            colors = ButtonColors(Color.White,Color.Black,Color.White,Color.White),
-                            onClick = {if (task.isNotBlank()) { tasks.add(task); task = ""; checkboxStates.add(false)} },
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .height(60.dp)
-                        )
-                        {
-                            Text(text = "ADD TASK")
-                        }
-                    }
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                    )
-                    {
-                        itemsIndexed(tasks) { index, item ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
-                            )
-                            {
-                                Text(text = item,
-                                    color = Color.White,
-                                    textAlign = TextAlign.Justify,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(top = 12.dp)
-                                    )
-                                Checkbox(
-                                    checked = checkboxStates[index],
-                                    onCheckedChange = { isChecked ->
-                                        checkboxStates[index] = isChecked
-                                    },
-                                )
-                                IconButton(
-                                    onClick = { tasks.removeAt(index); checkboxStates.removeAt(index) }
-                                )
-                                {
-                                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
-                                }
-                            }
-                            HorizontalDivider(color = Color.White)
-                        }
-                    }
-                }
+            TODOAPPTheme {
+                MainScreen()
             }
         }
-
     }
 }
 
+@Composable
+fun MainScreen() {
+    var task by remember { mutableStateOf("") }
+    val tasks = remember { mutableStateListOf<String>() }
+    val checkboxStates = remember { mutableStateListOf<Boolean>() }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.Black)
+            .padding(WindowInsets.safeContent.asPaddingValues())
+    ) {
+        TaskInput(
+            task = task,
+            onTaskChange = { task = it },
+            onAddTask = {
+                if (task.isNotBlank()) {
+                    tasks.add(task)
+                    task = ""
+                    checkboxStates.add(false)
+                }
+            }
+        )
+        TaskList(
+            tasks = tasks,
+            checkboxStates = checkboxStates,
+            onTaskCheckedChange = { index, isChecked ->
+                checkboxStates[index] = isChecked
+            },
+            onRemoveTask = { index ->
+                tasks.removeAt(index)
+                checkboxStates.removeAt(index)
+            }
+        )
+    }
+}
+
+@Composable
+fun TaskInput(
+    task: String,
+    onTaskChange: (String) -> Unit,
+    onAddTask: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = task,
+            onValueChange = onTaskChange,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp)
+                .height(60.dp)
+        )
+        Button(
+            colors = ButtonColors(Color.White,Color.Black,Color.White,Color.White),
+            onClick = onAddTask,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .height(60.dp)
+        ) {
+            Text(text = "ADD TASK")
+        }
+    }
+}
+
+@Composable
+fun TaskList(
+    tasks: List<String>,
+    checkboxStates: List<Boolean>,
+    onTaskCheckedChange: (Int, Boolean) -> Unit,
+    onRemoveTask: (Int) -> Unit
+) {
+    LazyColumn(
+    ) {
+        itemsIndexed(tasks) { index, item ->
+            TaskItem(
+                task = item,
+                isChecked = checkboxStates[index],
+                onCheckedChange = { onTaskCheckedChange(index, it) },
+                onRemove = { onRemoveTask(index) }
+            )
+            HorizontalDivider(color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun TaskItem(
+    task: String,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onRemove: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Text(
+            text = task,
+            color = Color.White,
+            textAlign = TextAlign.Justify,
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 12.dp)
+        )
+        Checkbox(
+            checked = isChecked,
+            onCheckedChange = onCheckedChange
+        )
+        IconButton(
+            onClick = onRemove
+        ) {
+            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+        }
+    }
+}
