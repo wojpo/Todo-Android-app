@@ -33,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.todoapp.ui.theme.TODOAPPTheme
@@ -46,7 +45,7 @@ class MainActivity : ComponentActivity() {
             TODOAPPTheme()
             {
                 var task by remember { mutableStateOf("") }
-                var tasks = remember { mutableStateListOf<String>() }
+                val tasks = remember { mutableStateListOf<String>() }
                 val checkboxStates = remember { mutableStateListOf<Boolean>() }
                 Column(
                     modifier = Modifier
@@ -78,7 +77,7 @@ class MainActivity : ComponentActivity() {
                                 .height(60.dp)
                         )
                         {
-                            Text(text = "ADD TASK");
+                            Text(text = "ADD TASK")
                         }
                     }
                     LazyColumn(
