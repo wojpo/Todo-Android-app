@@ -1,4 +1,4 @@
-package com.example.todoapp.com.example.todoapp
+package com.example.todoapp
 
 data class Todo(
     val task: String,
