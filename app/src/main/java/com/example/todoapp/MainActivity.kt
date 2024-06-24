@@ -1,5 +1,6 @@
 package com.example.todoapp
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,7 +20,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,35 +27,37 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.todoapp.ui.theme.TODOAPPTheme
+import java.io.File
 
 class MainActivity : ComponentActivity() {
+    private lateinit var todoViewModel: TodoViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        todoViewModel = TodoViewModel(applicationContext)
+
         setContent {
             TODOAPPTheme {
-                MainScreen()
+                MainScreen(todoViewModel)
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        todoViewModel.saveTasks(applicationContext)
     }
 }
 
 @Composable
-fun MainScreen() {
-    var task by remember { mutableStateOf("") }
-    val tasks = remember { mutableStateListOf<String>() }
-    val checkboxStates = remember { mutableStateListOf<Boolean>() }
-
+fun MainScreen(viewModel: TodoViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,25 +65,17 @@ fun MainScreen() {
             .padding(WindowInsets.safeContent.asPaddingValues())
     ) {
         TaskInput(
-            task = task,
-            onTaskChange = { task = it },
-            onAddTask = {
-                if (task.isNotBlank()) {
-                    tasks.add(task)
-                    task = ""
-                    checkboxStates.add(false)
-                }
-            }
+            task = viewModel.task,
+            onTaskChange = { viewModel.task = it },
+            onAddTask = { viewModel.addTask() }
         )
         TaskList(
-            tasks = tasks,
-            checkboxStates = checkboxStates,
+            tasks = viewModel.tasks,
             onTaskCheckedChange = { index, isChecked ->
-                checkboxStates[index] = isChecked
+                viewModel.updateTask(index, isChecked)
             },
             onRemoveTask = { index ->
-                tasks.removeAt(index)
-                checkboxStates.removeAt(index)
+                viewModel.removeTask(index)
             }
         )
     }
@@ -105,7 +99,6 @@ fun TaskInput(
                 .height(60.dp)
         )
         Button(
-            colors = ButtonColors(Color.White,Color.Black,Color.White,Color.White),
             onClick = onAddTask,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
@@ -118,17 +111,14 @@ fun TaskInput(
 
 @Composable
 fun TaskList(
-    tasks: List<String>,
-    checkboxStates: List<Boolean>,
+    tasks: List<Todo>,
     onTaskCheckedChange: (Int, Boolean) -> Unit,
     onRemoveTask: (Int) -> Unit
 ) {
-    LazyColumn(
-    ) {
+    LazyColumn {
         itemsIndexed(tasks) { index, item ->
             TaskItem(
                 task = item,
-                isChecked = checkboxStates[index],
                 onCheckedChange = { onTaskCheckedChange(index, it) },
                 onRemove = { onRemoveTask(index) }
             )
@@ -139,8 +129,7 @@ fun TaskList(
 
 @Composable
 fun TaskItem(
-    task: String,
-    isChecked: Boolean,
+    task: Todo,
     onCheckedChange: (Boolean) -> Unit,
     onRemove: () -> Unit
 ) {
@@ -150,7 +139,7 @@ fun TaskItem(
             .padding(8.dp)
     ) {
         Text(
-            text = task,
+            text = task.task,
             color = Color.White,
             textAlign = TextAlign.Justify,
             modifier = Modifier
@@ -158,7 +147,7 @@ fun TaskItem(
                 .padding(top = 12.dp)
         )
         Checkbox(
-            checked = isChecked,
+            checked = task.isCompleted,
             onCheckedChange = onCheckedChange
         )
         IconButton(
@@ -166,5 +155,28 @@ fun TaskItem(
         ) {
             Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
         }
+    }
+}
+
+
+fun saveTasks(context: Context, tasks: List<Todo>) {
+    val file = File(context.filesDir, "tasks.txt")
+    file.printWriter().use { out ->
+        tasks.forEach {
+            out.println("${it.task}|${it.isCompleted}")
+        }
+    }
+}
+
+fun loadTasks(context: Context): List<Todo> {
+    val file = File(context.filesDir, "tasks.txt")
+    if (!file.exists()) return emptyList()
+
+    return file.readLines().map {
+        val parts = it.split("|")
+        Todo(
+            task = parts[0],
+            isCompleted = parts[1].toBoolean()
+        )
     }
 }
